@@ -1,0 +1,12 @@
+## Version 1.0 (02/08/2013) ##
++ CompatibilitÈ PluXml 5.2
+
+## Version beta 2.1 (20/06/2012) ##
+[BUG] Fatal error: Call to a member function getLang() on a non-object in plxMyPluginDownloader.php on line 166
+
+## Version beta 2 (26/05/2012) ##
+[+] Ecran de téléchargement des plugins propriétaires
+BUG Hook AdminTopBottom: mauvaise déclaration des varariables $testx
+
+## Version beta 1 (11/05/2012) ##
+version initiale

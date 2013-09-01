@@ -1,0 +1,33 @@
+table.mypdler td {
+	padding: 18px 20px 20px 8px;
+	font-size:14px;
+}
+.new-red {
+	background: url(new-red.png) no-repeat top left;
+}
+.new-blue {
+	background: url(new-blue.png) no-repeat top left;
+}
+table.mypdler td.description {
+	width:80%;
+}
+table.mypdler td.action {
+	width:20%;
+	text-align:center;
+}
+table.mypdler .btnDownload {
+	background-color:#007fff;
+	color:#fff;
+	width:80px;
+}
+table.mypdler .btnDownload:hover {
+	background-color:#56aaff;
+}
+table.mypdler .btnUpdate {
+	background-color:#ef102e;
+	color:#fff;
+	width:80px;
+}
+table.mypdler .btnUpdate:hover {
+	background-color:#ff5656;
+}

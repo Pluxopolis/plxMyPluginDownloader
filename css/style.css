@@ -3,10 +3,10 @@ table.mypdler td {
 	font-size:14px;
 }
 .new-red {
-	background: url(new-red.png) no-repeat top left;
+	background: url(../imgnew-red.png) no-repeat top left;
 }
 .new-blue {
-	background: url(new-blue.png) no-repeat top left;
+	background: url(../imgnew-blue.png) no-repeat top left;
 }
 table.mypdler td.description {
 	width:80%;
@@ -18,7 +18,7 @@ table.mypdler td.action {
 table.mypdler .btnDownload {
 	background-color:#007fff;
 	color:#fff;
-	width:80px;
+	width:95px;
 }
 table.mypdler .btnDownload:hover {
 	background-color:#56aaff;
@@ -26,7 +26,7 @@ table.mypdler .btnDownload:hover {
 table.mypdler .btnUpdate {
 	background-color:#ef102e;
 	color:#fff;
-	width:80px;
+	width:95px;
 }
 table.mypdler .btnUpdate:hover {
 	background-color:#ff5656;

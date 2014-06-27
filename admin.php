@@ -3,15 +3,20 @@
 <?php
 
 # dossier local pour le cache
-$cache_dir = PLX_PLUGINS.'plxMyPluginDownloader/cache/';
+$cache_dir = PLX_PLUGINS.'cache/';
 
 # infos sur le repository
-$repository_url = 'http://repository.my-pluxml.googlecode.com/git/'; # avec un slash à la fin
+$repository_url = 'https://raw.githubusercontent.com/Pluxopolis/repository/master/'; # avec un slash à la fin
 $repository_xmlfile = 'repository.xml';
 $repository_version = 'repository.version';
 
 # Control du token du formulaire
 plxToken::validateFormToken($_POST);
+
+# vérification de la présence du dossier cache
+if(!is_dir(PLX_PLUGINS.'/cache')) {
+	mkdir(PLX_PLUGINS.'/cache',0755,true);
+}
 
 if(!empty($_POST)) {
 
@@ -37,8 +42,11 @@ if(!empty($_POST)) {
 			header('Location: plugin.php?p=plxMyPluginDownloader');
 			exit;
 		}
+
 		# téléchargement du fichier distant
-		if(!plxMyPluginDownloader::downloadRemoteFile($repo[$plugName]['file'], PLX_PLUGINS.basename($repo[$plugName]['file']))) {
+		$zipfile = PLX_PLUGINS.$plugName.'.zip';
+
+		if(!plxMyPluginDownloader::downloadRemoteFile($repo[$plugName]['file'], $zipfile)) {
 			plxMsg::Error($plxPlugin->getLang('L_ERR_DOWNLOAD'));
 			header('Location: plugin.php?p=plxMyPluginDownloader');
 			exit;
@@ -46,8 +54,14 @@ if(!empty($_POST)) {
 
 		# dezippage de l'archive
 		require_once(PLX_PLUGINS."plxMyPluginDownloader/dUnzip2.inc.php");
-		$zip = new dUnzip2(PLX_PLUGINS.basename($repo[$plugName]['file'])); // New Class : arg = fichier à dézipper
-		$zip->unzipAll(PLX_PLUGINS); // Unzip All  : arg = dossier de destination
+		$zip = new dUnzip2($zipfile); // New Class : arg = fichier à dézipper
+		$zip->unzipAll(PLX_PLUGINS); // Unzip All  : args = dossier de destination
+
+		# on renomme le dossier extrait
+		rename(PLX_PLUGINS.$plugName.'-'.str_replace('.zip', '', basename($repo[$plugName]['file'])), PLX_PLUGINS.$plugName);
+
+		# on supprimer le fichier .zip
+		unlink($zipfile);
 
 		# on teste si le dézippage semble ok par la présence du fichier infos.xml du plugin
 		if(!is_file(PLX_PLUGINS.$plugName.'/infos.xml'))
@@ -112,18 +126,8 @@ if($repo = plxMyPluginDownloader::getRepository($cache_dir.$repository_xmlfile))
 		$color='';
 		if($update) $color = ' new-red';
 
-		# determination de l'icone à afficher
-		if(plxMyPluginDownloader::is_RemoteFileExists($repository_url.$plugName.'/icon.png'))
-			$icon=$repository_url.$plugName.'/icon.png';
-		elseif(plxMyPluginDownloader::is_RemoteFileExists($repository_url.$plugName.'/icon.jpg'))
-			$icon=$repository_url.$plugName.'/icon.jpg';
-		elseif(plxMyPluginDownloader::is_RemoteFileExists($repository_url.$plugName.'/icon.gif'))
-			$icon=$repository_url.$plugName.'/icon.gif';
-		else
-			$icon=PLX_CORE.'admin/theme/images/icon_plugin.png';
-
 		echo '<tr>';
-		echo '<td class="icon"><img src="'.$icon.'" alt="'.plxUtils::strCheck($plug['title']).'" /></td>';
+		echo '<td class="icon"><img src="'.$plug['icon'].'" alt="" /></td>';
 		echo '<td class="description'.$color.'">';
 			echo '<strong>'.plxUtils::strCheck($plug['title']).'</strong>';
 			echo ' - '.$plxPlugin->getLang('L_VERSION').' <strong>'.plxUtils::strCheck($plug['version']).'</strong>';

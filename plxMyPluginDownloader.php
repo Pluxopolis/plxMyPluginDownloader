@@ -16,8 +16,8 @@ class plxMyPluginDownloader extends plxPlugin {
 	 **/
 	public function __construct($default_lang) {
 
-        # appel du constructeur de la classe plxPlugin (obligatoire)
-        parent::__construct($default_lang);
+		# appel du constructeur de la classe plxPlugin (obligatoire)
+		parent::__construct($default_lang);
 
 		# droits pour accèder à la page config.php
 		$this->setConfigProfil(PROFIL_ADMIN);
@@ -26,168 +26,34 @@ class plxMyPluginDownloader extends plxPlugin {
 		$this->setAdminProfil(PROFIL_ADMIN);
 
 		# déclaration des hooks
-        $this->addHook('AdminSettingsPluginsTop', 'AdminSettingsPluginsTop');
-        $this->addHook('AdminPrepend', 'AdminPrepend');
-        $this->addHook('AdminTopBottom', 'AdminTopBottom');
-        $this->addHook('AdminTopEndHead', 'AdminTopEndHead');
+		$this->addHook('AdminTopEndHead', 'AdminTopEndHead');
+		$this->addHook('AdminTopBottom', 'AdminTopBottom');
 
-    }
+	}
 
-    public function onActivate() {
-    	if(!is_dir(PLX_PLUGINS.'plxMyPluginDownloader/cache')) {
-    		mkdir(PLX_PLUGINS.'plxMyPluginDownloader/cache',0755,true);
-    	}
-    }
+	/**
+	 * Méthode appelée à l'activation du plugin pour créer le répertoire cache
+	 *
+	 * @author	Stephane F
+	 **/
+	public function onActivate() {
+		if(!is_dir(PLX_PLUGINS.'/cache')) {
+			mkdir(PLX_PLUGINS.'/cache',0755,true);
+		}
+	}
 
+	/**
+	 * Méthode qui ajoute la déclaration de la feuille de style pour l'écran d'admin du plugin
+	 *
+	 * @return	stdio
+	 * @author	Stephane F
+	 **/
 	public function AdminTopEndHead() {
-		echo '<link rel="stylesheet" type="text/css" href="'.PLX_PLUGINS.'plxMyPluginDownloader/style.css" />'."\n";
-	}
-
-	public static function is_cURL() {
-		return in_array("curl", get_loaded_extensions());
-	}
-
-	public static function getRemoteFileContent($remotefile){
-		$curl = curl_init();
-		curl_setopt($curl, CURLOPT_HEADER, 0);
-		curl_setopt($curl, CURLOPT_URL, $remotefile);
-		curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
-		$data = curl_exec($curl);
-		curl_close($curl);
-		if ($data !== false){
-			return $data;
-		}
-		return false;
-	}
-
-	public static function is_RemoteFileExists($remotefile) {
-
-		return true;
-  		// Version 4.x supported
-    	$curl   = curl_init($remotefile);
-		curl_setopt($curl, CURLOPT_HEADER, false);
-		curl_setopt($curl, CURLOPT_FAILONERROR, true);
-		curl_setopt($curl, CURLOPT_HTTPHEADER, Array("User-Agent: Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.15) Gecko/20080623 Firefox/2.0.0.15") ); // request as if Firefox
-		curl_setopt($curl, CURLOPT_NOBODY, true);
-		curl_setopt($curl, CURLOPT_RETURNTRANSFER, false);
-		$connectable = curl_exec($curl);
-		curl_close($curl);
-		return $connectable;
-
-	}
-
-	public static function downloadRemoteFile($remotefile, $destination) {
-
-		if($fp = fopen($destination, 'w')) {
-			$curl = curl_init($remotefile);
-			curl_setopt($curl, CURLOPT_FILE, $fp);
-			curl_exec($curl);
-			curl_close($curl);
-			fclose($fp);
-		}
-		else return false;
-
-		return (is_file($destination) AND filesize($destination)>0);
-
-	}
-
-	public static function getRepository($filename) {
-
-		$array=array();
-		# Mise en place du parseur XML
-		$data = implode('',file($filename));
-		$parser = xml_parser_create(PLX_CHARSET);
-		xml_parser_set_option($parser,XML_OPTION_CASE_FOLDING,0);
-		xml_parser_set_option($parser,XML_OPTION_SKIP_WHITE,0);
-		xml_parse_into_struct($parser,$data,$values,$iTags);
-		xml_parser_free($parser);
-		# Récupération des données xml
-		if(isset($iTags['plugin'])) {
-			$nb = sizeof($iTags['name']);
-			for($i = 0; $i < $nb; $i++) {
-				$name = plxUtils::getValue($values[$iTags['name'][$i]]['value']);
-				if($name!='') {
-					$array[$name]['title'] = plxUtils::getValue($values[$iTags['title'][$i]]['value']);
-					$array[$name]['author'] = plxUtils::getValue($values[$iTags['author'][$i]]['value']);
-					$array[$name]['version'] = plxUtils::getValue($values[$iTags['version'][$i]]['value']);
-					$array[$name]['date'] = plxUtils::getValue($values[$iTags['date'][$i]]['value']);
-					$array[$name]['site'] = plxUtils::getValue($values[$iTags['site'][$i]]['value']);
-					$array[$name]['description'] = plxUtils::getValue($values[$iTags['description'][$i]]['value']);
-					$array[$name]['file'] = plxUtils::getValue($values[$iTags['file'][$i]]['value']);
-				}
-			}
-		}
-		return $array;
+		echo '<link rel="stylesheet" type="text/css" href="'.PLX_PLUGINS.'plxMyPluginDownloader/css/style.css" />'."\n";
 	}
 
 	/**
-	 * Méthode qui traite le formulaire de téléchargement
-	 *
-	 * @return	stdio
-	 * @author	Stephane F
-	 **/
-    public function AdminPrepend() {
-
-		if(isset($_POST['download']) AND !empty($_POST['url'])) {
-
-			$remoteFile = $_POST['url'];
-			$destination = PLX_PLUGINS.basename($remoteFile);
-
-			# on reteste que l'extension cURL est dispo
-			if(!plxMyPluginDownloader::is_cURL()) {
-				plxMsg::Error($this->getLang('L_ERR_CURL_NOT_AVAILABLE'));
-				header('Location: parametres_plugins.php');
-				exit;
-			}
-			# on teste si le fichier distant est dispo
-			if(!plxMyPluginDownloader::is_RemoteFileExists($remoteFile)) {
-				plxMsg::Error($this->getLang('L_ERR_REMOTE_FILE'));
-				header('Location: parametres_plugins.php');
-				exit;
-			}
-			# téléchargement du fichier distant
-			if(!plxMyPluginDownloader::downloadRemoteFile($remoteFile, $destination)) {
-				plxMsg::Error($this->getLang('L_ERR_DOWNLOAD'));
-				header('Location: parametres_plugins.php');
-				exit;
-			}
-
-			# dezippage de l'archive
-			require_once(PLX_PLUGINS."plxMyPluginDownloader/dUnzip2.inc.php");
-			$zip = new dUnzip2($destination); // New Class : arg = fichier à dézipper
-			$zip->unzipAll(PLX_PLUGINS); // Unzip All  : arg = dossier de destination
-
-			# redirection
-			plxMsg::Info($this->getLang('L_INSTALL_OK'));
-			header('Location: parametres_plugins.php');
-			exit;
-		}
-
-	}
-
-	/**
-	 * Méthode qui affiche le formulaire de téléchargement
-	 *
-	 * @return	stdio
-	 * @author	Stephane F
-	 **/
-    public function AdminSettingsPluginsTop() {?>
-
-<div style="margin:15px 0 15px 0; padding:10px 0 10px 5px; background-color:#efefef">
-<form action="parametres_plugins.php" method="post" id="form_MyPluginDownloader">
-	<p><?php echo plxToken::getTokenPostMethod() ?></p>
-	<p>
-		<?php $this->lang('L_URL') ?> : <input type="text" name="url" value="" maxlength="255" size="80"/>&nbsp;
-		<input class="button" type="submit" name="download" value="<?php $this->lang('L_DOWNLOAD') ?> " />&nbsp;<?php $this->lang('L_EXTENSION') ?>
-	</p>
-</form>
-</div>
-
-	<?php
-	}
-
-	/**
-	 * Méthode qui effectue les controles pour le fonctionnement du plugin
+	 * Méthode qui effectue les contrôles pour le fonctionnement du plugin
 	 *
 	 * @return	stdio
 	 * @author	Stephane F
@@ -215,6 +81,132 @@ class plxMyPluginDownloader extends plxPlugin {
 
 	}
 
+	/***************************************************/
+	/* méthodes publiques pour télécharger des plugins */
+	/***************************************************/
+
+	public static function is_cURL() {
+		return in_array("curl", get_loaded_extensions());
+	}
+
+	public static function getRemoteFileContent($remotefile){
+		$curl = curl_init();
+		curl_setopt($curl, CURLOPT_HEADER, 0);
+		curl_setopt($curl, CURLOPT_URL, $remotefile);
+		curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+		$data = curl_exec($curl);
+		curl_close($curl);
+		if ($data !== false){
+			return $data;
+		}
+		return false;
+	}
+
+	public static function is_RemoteFileExists($remotefile) {
+		return true;
+		// Version 4.x supported
+		$curl   = curl_init($remotefile);
+		curl_setopt($curl, CURLOPT_HEADER, false);
+		curl_setopt($curl, CURLOPT_FAILONERROR, true);
+		curl_setopt($curl, CURLOPT_HTTPHEADER, Array("User-Agent: Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.15) Gecko/20080623 Firefox/2.0.0.15") ); // request as if Firefox
+		curl_setopt($curl, CURLOPT_NOBODY, true);
+		curl_setopt($curl, CURLOPT_RETURNTRANSFER, false);
+		$connectable = curl_exec($curl);
+		curl_close($curl);
+		return $connectable;
+
+	}
+
+	public static function downloadRemoteFile($remotefile, $destination,$VerifyPeer=false,$VerifyHost=true) {
+		if($fp = fopen($destination, 'w')) {
+			$curl = curl_init($remotefile);
+			curl_setopt($curl, CURLOPT_FILE, $fp);
+			curl_setopt($curl, CURLOPT_HEADER, 0); # we are not sending any headers
+			plxMyPluginDownloader::curl_redir_exec($curl);
+			curl_close($curl);
+			fclose($fp);
+		}
+		else return false;
+
+		return (is_file($destination) AND filesize($destination)>0);
+
+	}
+
+	public static function getRepository($filename) {
+		$array=array();
+		# Mise en place du parseur XML
+		$data = implode('',file($filename));
+		$parser = xml_parser_create(PLX_CHARSET);
+		xml_parser_set_option($parser,XML_OPTION_CASE_FOLDING,0);
+		xml_parser_set_option($parser,XML_OPTION_SKIP_WHITE,0);
+		xml_parse_into_struct($parser,$data,$values,$iTags);
+		xml_parser_free($parser);
+		# Récupération des données xml
+		if(isset($iTags['plugin'])) {
+			$nb = sizeof($iTags['name']);
+			for($i = 0; $i < $nb; $i++) {
+				$name = plxUtils::getValue($values[$iTags['name'][$i]]['value']);
+				if($name!='') {
+					$array[$name]['name'] = $name;
+					$array[$name]['title'] = plxUtils::getValue($values[$iTags['title'][$i]]['value']);
+					$array[$name]['author'] = plxUtils::getValue($values[$iTags['author'][$i]]['value']);
+					$array[$name]['version'] = plxUtils::getValue($values[$iTags['version'][$i]]['value']);
+					$array[$name]['date'] = plxUtils::getValue($values[$iTags['date'][$i]]['value']);
+					$array[$name]['site'] = plxUtils::getValue($values[$iTags['site'][$i]]['value']);
+					$array[$name]['description'] = plxUtils::getValue($values[$iTags['description'][$i]]['value']);
+					$array[$name]['file'] = plxUtils::getValue($values[$iTags['file'][$i]]['value']);
+					$array[$name]['icon'] = plxUtils::getValue($values[$iTags['icon'][$i]]['value']);
+				}
+
+			}
+		}
+		return $array;
+	}
+
+	public static function curl_redir_exec(/*resource*/ $ch, /*int*/ &$maxredirect = null) {
+		$mr = $maxredirect === null ? 5 : intval($maxredirect);
+		if (ini_get('open_basedir') == '' && ini_get('safe_mode' == 'Off')) {
+			curl_setopt($ch, CURLOPT_FOLLOWLOCATION, $mr > 0);
+			curl_setopt($ch, CURLOPT_MAXREDIRS, $mr);
+		} else {
+			curl_setopt($ch, CURLOPT_FOLLOWLOCATION, false);
+			if ($mr > 0) {
+				$newurl = curl_getinfo($ch, CURLINFO_EFFECTIVE_URL);
+
+				$rch = curl_copy_handle($ch);
+				curl_setopt($rch, CURLOPT_HEADER, true);
+				curl_setopt($rch, CURLOPT_NOBODY, true);
+				curl_setopt($rch, CURLOPT_FORBID_REUSE, false);
+				curl_setopt($rch, CURLOPT_RETURNTRANSFER, true);
+				do {
+	               	 curl_setopt($rch, CURLOPT_URL, $newurl);
+				   	 $header = curl_exec($rch);
+				   	 if (curl_errno($rch)) {
+					   	 $code = 0;
+					 } else {
+						 $code = curl_getinfo($rch, CURLINFO_HTTP_CODE);
+						 if ($code == 301 || $code == 302) {
+							 preg_match('/Location:(.*?)\n/', $header, $matches);
+							 $newurl = trim(array_pop($matches));
+						 } else {
+							 $code = 0;
+						 }
+					}
+				} while ($code && --$mr);
+				curl_close($rch);
+				if (!$mr) {
+	                if ($maxredirect === null) {
+						trigger_error('Too many redirects. When following redirects, libcurl hit the maximum amount.', E_USER_WARNING);
+					} else {
+						$maxredirect = 0;
+					}
+					return false;
+				}
+				curl_setopt($ch, CURLOPT_URL, $newurl);
+			}
+		}
+		return curl_exec($ch);
+	}
 
 }
 ?>

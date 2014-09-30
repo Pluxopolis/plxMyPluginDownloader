@@ -1,3 +1,6 @@
+## Version x (xx/xx/xxxx) ##
+[+] Traduction anglaise (contribution ComputingFroggy)
+
 ## Version 1.1 (26/06/2014) ##
 [+] Relocalisation des dépôts sur github
 [+] Mise à jour dUnzip2 en version 2.67

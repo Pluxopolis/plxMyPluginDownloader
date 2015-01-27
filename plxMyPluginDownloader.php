@@ -90,14 +90,17 @@ class plxMyPluginDownloader extends plxPlugin {
 	}
 
 	public static function getRemoteFileContent($remotefile){
-		$curl = curl_init();
-		curl_setopt($curl, CURLOPT_HEADER, 0);
-		curl_setopt($curl, CURLOPT_URL, $remotefile);
-		curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
-		$data = curl_exec($curl);
+
+		$curl = curl_init($remotefile);
+		curl_setopt($curl, CURLOPT_FAILONERROR, true);
+		curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
+		curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
+		curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+		$result = curl_exec($curl);
 		curl_close($curl);
-		if ($data !== false){
-			return $data;
+		if ($result !== false){
+			return $result;
 		}
 		return false;
 	}
@@ -122,6 +125,8 @@ class plxMyPluginDownloader extends plxPlugin {
 			$curl = curl_init($remotefile);
 			curl_setopt($curl, CURLOPT_FILE, $fp);
 			curl_setopt($curl, CURLOPT_HEADER, 0); # we are not sending any headers
+			curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
+			curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
 			plxMyPluginDownloader::curl_redir_exec($curl);
 			curl_close($curl);
 			fclose($fp);
@@ -163,9 +168,24 @@ class plxMyPluginDownloader extends plxPlugin {
 		return $array;
 	}
 
+	public static function ini_get_boolean($setting) {
+
+		$my_boolean = ini_get($setting);
+		if ((int) $my_boolean > 0)
+			$my_boolean = true;
+		else {
+			$my_lowered_boolean = strtolower($my_boolean);
+			if ($my_lowered_boolean === "true" || $my_lowered_boolean === "on" || $my_lowered_boolean === "yes")
+				$my_boolean = true;
+			else
+				$my_boolean = false;
+		}
+		return $my_boolean;
+	}
+
 	public static function curl_redir_exec(/*resource*/ $ch, /*int*/ &$maxredirect = null) {
 		$mr = $maxredirect === null ? 5 : intval($maxredirect);
-		if (ini_get('open_basedir') == '' && ini_get('safe_mode' == 'Off')) {
+		if (ini_get('open_basedir') == '' && !plxMyPluginDownloader::ini_get_boolean('safe_mode')) {
 			curl_setopt($ch, CURLOPT_FOLLOWLOCATION, $mr > 0);
 			curl_setopt($ch, CURLOPT_MAXREDIRS, $mr);
 		} else {
@@ -179,23 +199,23 @@ class plxMyPluginDownloader extends plxPlugin {
 				curl_setopt($rch, CURLOPT_FORBID_REUSE, false);
 				curl_setopt($rch, CURLOPT_RETURNTRANSFER, true);
 				do {
-	               	 curl_setopt($rch, CURLOPT_URL, $newurl);
-				   	 $header = curl_exec($rch);
-				   	 if (curl_errno($rch)) {
-					   	 $code = 0;
-					 } else {
-						 $code = curl_getinfo($rch, CURLINFO_HTTP_CODE);
-						 if ($code == 301 || $code == 302) {
-							 preg_match('/Location:(.*?)\n/', $header, $matches);
-							 $newurl = trim(array_pop($matches));
-						 } else {
-							 $code = 0;
-						 }
+					curl_setopt($rch, CURLOPT_URL, $newurl);
+					$header = curl_exec($rch);
+					if (curl_errno($rch)) {
+						$code = 0;
+					} else {
+						$code = curl_getinfo($rch, CURLINFO_HTTP_CODE);
+						if ($code == 301 || $code == 302) {
+							preg_match('/Location:(.*?)\n/', $header, $matches);
+							$newurl = trim(array_pop($matches));
+						} else {
+							$code = 0;
+						}
 					}
 				} while ($code && --$mr);
 				curl_close($rch);
 				if (!$mr) {
-	                if ($maxredirect === null) {
+					if ($maxredirect === null) {
 						trigger_error('Too many redirects. When following redirects, libcurl hit the maximum amount.', E_USER_WARNING);
 					} else {
 						$maxredirect = 0;
@@ -207,6 +227,5 @@ class plxMyPluginDownloader extends plxPlugin {
 		}
 		return curl_exec($ch);
 	}
-
 }
 ?>

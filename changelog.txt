@@ -1,5 +1,8 @@
-## Version x (xx/xx/xxxx) ##
+## Version 1.2 (27/01/2015) ##
 [+] Traduction anglaise (contribution ComputingFroggy)
+[+] Dézippage avec les droits 0755 au lieu de 0777
+BUG: mauvaise prise en charge SSL
+BUG: mauvais détection du safe_mode
 
 ## Version 1.1 (26/06/2014) ##
 [+] Relocalisation des dépôts sur github

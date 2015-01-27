@@ -55,7 +55,7 @@ if(!empty($_POST)) {
 		# dezippage de l'archive
 		require_once(PLX_PLUGINS."plxMyPluginDownloader/dUnzip2.inc.php");
 		$zip = new dUnzip2($zipfile); // New Class : arg = fichier à dézipper
-		$zip->unzipAll(PLX_PLUGINS); // Unzip All  : args = dossier de destination
+		$zip->unzipAll(PLX_PLUGINS, "", true, 0755); // Unzip All  : args = dossier de destination
 
 		# on renomme le dossier extrait
 		rename(PLX_PLUGINS.$plugName.'-'.str_replace('.zip', '', basename($repo[$plugName]['file'])), PLX_PLUGINS.$plugName);

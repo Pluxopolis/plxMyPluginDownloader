@@ -51,6 +51,12 @@ if(!empty($_POST)) {
 			header('Location: plugin.php?p=plxMyPluginDownloader');
 			exit;
 		}
+		
+		# renommer le dossier du plugin si déja présent
+		if (file_exists(PLX_PLUGINS.$plugName)) {
+			$tempPlugnamePN = PLX_PLUGINS.$plugName.date("YmdHis");
+			rename(PLX_PLUGINS.$plugName, $tempPlugnamePN);
+		}
 
 		# dezippage de l'archive
 		require_once(PLX_PLUGINS."plxMyPluginDownloader/dUnzip2.inc.php");
@@ -64,10 +70,24 @@ if(!empty($_POST)) {
 		unlink($zipfile);
 
 		# on teste si le dézippage semble ok par la présence du fichier infos.xml du plugin
-		if(!is_file(PLX_PLUGINS.$plugName.'/infos.xml'))
+		if(!is_file(PLX_PLUGINS.$plugName.'/infos.xml')) {
+			# remettre en place le dossier sauvegardé
+			if (file_exists($tempPlugnamePN)) {
+				rename($tempPlugnamePN, PLX_PLUGINS.$plugName);
+			}
+			
+			# afficher qu'une erreur s'est produite
 			plxMsg::Error($plxPlugin->getLang('L_ERR_INSTALL'));
-		else
+		}
+		else {
+			# supprimer la sauvegarde de l'ancien dossier
+			if (file_exists($tempPlugnamePN)) {
+				plxMyPluginDownloader::deleteDir($tempPlugnamePN);
+			}
+			
+			# afficher que tout est ok
 			plxMsg::Info($plxPlugin->getLang('L_INSTALL_OK'));
+		}
 
 		# Redirection
 		header('Location: plugin.php?p=plxMyPluginDownloader');

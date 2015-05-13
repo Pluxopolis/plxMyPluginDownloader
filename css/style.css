@@ -3,10 +3,10 @@ table.mypdler td {
 	font-size:14px;
 }
 .new-red {
-	background: url(../imgnew-red.png) no-repeat top left;
+	background: url(../img/new-red.png) no-repeat top left;
 }
 .new-blue {
-	background: url(../imgnew-blue.png) no-repeat top left;
+	background: url(../img/new-blue.png) no-repeat top left;
 }
 table.mypdler td.description {
 	width:80%;

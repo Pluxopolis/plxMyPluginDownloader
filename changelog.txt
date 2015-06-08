@@ -1,3 +1,6 @@
+## Version 1.3 (non-officielle) ##
+BUG: problème lorsque le plugin existait déjà
+
 ## Version 1.2 (27/01/2015) ##
 [+] Traduction anglaise (contribution ComputingFroggy)
 [+] Dézippage avec les droits 0755 au lieu de 0777

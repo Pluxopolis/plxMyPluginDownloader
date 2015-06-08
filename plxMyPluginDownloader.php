@@ -227,5 +227,49 @@ class plxMyPluginDownloader extends plxPlugin {
 		}
 		return curl_exec($ch);
 	}
+	
+	/**
+
+	 * Méthode récursive qui supprimes tous les dossiers et les fichiers d'un répertoire
+
+	 *
+
+	 * @param	deldir	répertoire de suppression
+
+	 * @return	boolean	résultat de la suppression
+
+	 * @author	Stephane F
+
+	 **/
+
+	public static function deleteDir($deldir) { #fonction récursive
+
+
+
+		if(is_dir($deldir) AND !is_link($deldir)) {
+
+			if($dh = opendir($deldir)) {
+
+				while(FALSE !== ($file = readdir($dh))) {
+
+					if($file != '.' AND $file != '..') {
+
+						plxMyPluginDownloader::deleteDir($deldir.'/'.$file);
+
+					}
+
+				}
+
+				closedir($dh);
+
+			}
+
+			return rmdir($deldir);
+
+		}
+
+		return unlink($deldir);
+
+	}
 }
 ?>
